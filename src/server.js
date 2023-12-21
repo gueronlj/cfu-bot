@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { token, prefix } = require('../config.json');
+const { token } = require('../config.json');
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 
 const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]});
@@ -15,9 +15,11 @@ for (const file of commandFiles) {
     const command = require(filePath);
     // Set a new item in the Collection with the key as the command name and the value as the exported module
     if ('data' in command && 'execute' in command) {
+        //command is valid: load it
         client.commands.set(command.data.name, command);
         console.log(`Loaded command ${command.data.name} from ${file}`);
     } else {
+        //command is invalid: don't load it, print error
         console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
     }
 }
@@ -36,30 +38,6 @@ for (const file of eventFiles) {
 	}
     console.log(`Loaded event listener ${file}`);
 }
-
-// client.on('message', message => {
-//     console.log(message);
-//     if (!message.content.startsWith(prefix) || message.author.bot) return;
-
-//     else{
-//         const arg = message.content.slice(prefix.length).trim();
-//         const command = arg.shift().toLowerCase();
-//         console.log(`Command: ${command}\nArguments: ${arg}`);
-    
-//         if (command === 'cfu') {
-//             if (!arg.length) {
-//                 return message.channel.send(`You didn't provide any arguments, ${message.author}!`);
-//             }
-    
-//             message.channel.send(`Command name: ${command}\nArguments: ${arg}`);
-//         }
-//     }
-   
-// })
-
-client.on('message', message => {
-	console.log(message.content);
-});
 
 client.login(token);
 

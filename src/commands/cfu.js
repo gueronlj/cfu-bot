@@ -2,11 +2,10 @@ const  axios  = require('axios');
 const { openAI_key, openAI_url }  = require('../../config.json');
 const { SlashCommandBuilder } = require('discord.js');
 
-let userMessage = 'What are you?';
 let AI_response = '';
+let axiosError = null
 
-
-const sendCompletion = async () => {
+const sendCompletion = async (message) => {
     try{
         const response = await axios.post(
             `${openAI_url}`,
@@ -15,7 +14,7 @@ const sendCompletion = async () => {
                 "messages": [
                     {
                         "role": "user",
-                        "content":  `${userMessage}`
+                        "content":  `${message}`
                     }
                 ],
                 "temperature": 0.7
@@ -27,22 +26,25 @@ const sendCompletion = async () => {
             }
         );
         AI_response = response.data.choices[0].message.content;
-        console.log( AI_response );
     }catch( error ){
-        console.log( error );
+        axiosError = error.message;
     }
 };
 
-sendCompletion();
+//sendCompletion();
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('cfu')
-		.setDescription('Seek wisdom from Sifu'),
-	async execute(interaction) {
-		// interaction.user is the object representing the User who ran the command
-		// interaction.member is the GuildMember object, which represents the user in the specific guild
-        sendCompletion();
-		await interaction.reply(AI_response);
-	},
+		.setDescription('Seek wisdom from Sifu')
+        .addStringOption(option =>
+			option
+				.setName('input')
+				.setDescription('The wisdom you seek')),
+	async execute(interaction) {     
+        const input = interaction.options.getString('input');
+        await interaction.deferReply({ ephemeral: true });
+        await sendCompletion(input);
+		await interaction.editReply(AI_response || axiosError);
+	},  
 };
